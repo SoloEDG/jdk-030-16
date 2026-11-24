@@ -28,6 +28,17 @@ export function useWorkshop() {
     if (!result.moved) {
       if (result.reason === "cleared") {
         notify({ tone: "warn", message: "本关已通关。重置或另选关卡后再推。" });
+      } else if (result.reason === "pin") {
+        notify({ tone: "warn", message: "力落在固定插销或其力线通过插销，长箱没有转动。" });
+      } else if (result.reason === "transmission") {
+        notify({ tone: "warn", message: "同一角度的两组传动不能同时成立，已在接触处停止，未计步。" });
+      } else if (result.preview && !result.preview.completed) {
+        const degree = Math.round((result.preview.blockTravel * 180) / Math.PI);
+        const edge = result.preview.contacts[0]?.edgeId;
+        notify({
+          tone: "warn",
+          message: `扫掠在行程 ${degree}° 处先碰到${edge ? `边 ${edge}` : "障碍"}；未走满四分之一圈，因此不计步。`,
+        });
       }
       return;
     }
@@ -43,11 +54,13 @@ export function useWorkshop() {
   }
 
   function reset(): void {
+    hauler.resetPreview();
     voyage.resetLevel();
-    notify({ tone: "info", message: "已重置当前关卡，最佳记录仍在。" });
+    notify({ tone: "info", message: "已重置本关，插销与长箱的相对位置已还原。最佳记录仍在。" });
   }
 
   function selectLevel(id: string): void {
+    hauler.resetPreview();
     voyage.openLevel(id);
     notify({
       tone: "info",

@@ -1,17 +1,17 @@
-import { goalCells } from "@/features/atlas";
-import { sameCell } from "@/shared/document";
+import { goalCells } from "@/features/atlas/lib/grid";
+import { boxOccupiesCell } from "@/features/hauler/lib/occupancy";
 import type { GameDocument, Vec } from "@/shared/types";
 
 export function filledGoals(document: GameDocument): Vec[] {
   return goalCells(document.level).filter((cell) =>
-    document.level.boxes.some((box) => sameCell(box, cell)),
+    document.level.boxes.some((box) => boxOccupiesCell(box, cell)),
   );
 }
 
 export function goalsSatisfied(document: GameDocument): boolean {
   const goals = goalCells(document.level);
   if (goals.length === 0) return false;
-  return goals.every((cell) => document.level.boxes.some((box) => sameCell(box, cell)));
+  return goals.every((cell) => document.level.boxes.some((box) => boxOccupiesCell(box, cell)));
 }
 
 export function coverageLine(document: GameDocument): string {

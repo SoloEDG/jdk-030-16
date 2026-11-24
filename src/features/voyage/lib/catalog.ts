@@ -1,7 +1,10 @@
 import { createId } from "@/shared/document";
 import type {
+  Box,
   BoxKind,
   FloorMorph,
+  GearLink,
+  Pin,
   RuntimeLevel,
   TileKind,
 } from "@/shared/types";
@@ -12,7 +15,7 @@ export interface LevelBlueprint {
   blurb: string;
   rows: string[];
   player: { x: number; y: number };
-  boxes: { kind: BoxKind; x: number; y: number }[];
+  boxes: Array<Omit<Box, "id"> & { id?: string }>;
   plates: {
     accept: BoxKind;
     x: number;
@@ -22,6 +25,8 @@ export interface LevelBlueprint {
   }[];
   doors: { id: string; x: number; y: number }[];
   floors: { id: string; x: number; y: number; morph: FloorMorph }[];
+  pins?: Pin[];
+  links?: GearLink[];
 }
 
 function tilesOf(rows: string[]): TileKind[][] {
@@ -171,6 +176,35 @@ export const LEVELS: LevelBlueprint[] = [
     ],
     floors: [],
   },
+  {
+    id: "latch-06",
+    title: "插销与反向齿",
+    blurb: "推长箱自由端绕插销扫过四分之一圈；相邻同齿齿圈反向同速传动。扫满后齿箱端压住销纹踏板并开门，第一处黄红边是真正会先碰到的位置。",
+    rows: [
+      "##########",
+      "#........#",
+      "#........#",
+      "#........#",
+      "#.*......#",
+      "#........#",
+      "#........#",
+      "##########",
+    ],
+    player: { x: 1, y: 2 },
+    boxes: [
+      { id: "beam-a", kind: "rack", shape: "beam", x: 2, y: 3, pinId: "pin-a", angle: Math.PI, teeth: 8 },
+      { id: "beam-b", kind: "rack", shape: "beam", x: 3, y: 3, pinId: "pin-b", angle: 0, teeth: 8 },
+      { id: "iron-stop", kind: "iron", x: 4, y: 2 },
+    ],
+    plates: [{ accept: "rack", x: 3, y: 4, doorIds: ["gear-door"], floorIds: [] }],
+    doors: [{ id: "gear-door", x: 8, y: 3 }],
+    floors: [],
+    pins: [
+      { id: "pin-a", x: 2, y: 3 },
+      { id: "pin-b", x: 3, y: 3 },
+    ],
+    links: [{ id: "gear-a-b", a: "beam-a", b: "beam-b", teethA: 8, teethB: 8 }],
+  },
 ];
 
 export function getLevel(id: string): LevelBlueprint {
@@ -188,7 +222,10 @@ export function hydrate(blueprint: LevelBlueprint): RuntimeLevel {
     height: blueprint.rows.length,
     tiles: tilesOf(blueprint.rows),
     player: { ...blueprint.player },
-    boxes: blueprint.boxes.map((box) => ({ ...box, id: createId(box.kind) })),
+    boxes: blueprint.boxes.map((box) => ({
+      ...box,
+      id: box.id ?? createId(box.kind),
+    })),
     plates: blueprint.plates.map((plate, index) => ({
       ...plate,
       id: `p-${blueprint.id}-${index}`,
@@ -196,5 +233,7 @@ export function hydrate(blueprint: LevelBlueprint): RuntimeLevel {
     })),
     doors: blueprint.doors.map((door) => ({ ...door, open: false })),
     floors: blueprint.floors.map((floor) => ({ ...floor, active: false })),
+    pins: (blueprint.pins ?? []).map((pin) => ({ ...pin, fixed: true })),
+    links: (blueprint.links ?? []).map((link) => ({ ...link })),
   };
 }

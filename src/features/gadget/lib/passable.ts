@@ -1,4 +1,5 @@
-import { cellAt, inBounds } from "@/features/atlas";
+import { cellAt, inBounds } from "@/features/atlas/lib/grid";
+import { boxOccupiesCell } from "@/features/hauler/lib/occupancy";
 import { sameCell } from "@/shared/document";
 import type { GameDocument, Vec } from "@/shared/types";
 
@@ -22,7 +23,7 @@ export function isPassable(document: GameDocument, at: Vec, query: PassQuery = {
   const door = document.level.doors.find((item) => item.x === at.x && item.y === at.y);
   if (door && !door.open) return false;
   const box = document.level.boxes.find(
-    (item) => sameCell(item, at) && item.id !== query.ignoreBoxId,
+    (item) => item.id !== query.ignoreBoxId && boxOccupiesCell(item, at),
   );
   if (box) return false;
   if (!query.ignorePlayer && sameCell(document.level.player, at)) return false;

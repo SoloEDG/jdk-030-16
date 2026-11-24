@@ -13,6 +13,8 @@ defineEmits<{ select: [id: string]; reset: [] }>();
         <button
           type="button"
           :class="{ current: level.current }"
+          :data-level-id="level.id"
+          data-testid="level-button"
           :aria-current="level.current ? 'true' : undefined"
           @click="$emit('select', level.id)"
         >
@@ -22,6 +24,6 @@ defineEmits<{ select: [id: string]; reset: [] }>();
         <p>{{ level.blurb }}</p>
       </li>
     </ul>
-    <button type="button" class="reset" @click="$emit('reset')">重置当前关卡</button>
+    <button type="button" class="reset" data-testid="reset-level" @click="$emit('reset')">重置本关</button>
   </section>
 </template>

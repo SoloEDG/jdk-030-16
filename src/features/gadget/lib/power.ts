@@ -1,11 +1,11 @@
-import { sameCell } from "@/shared/document";
+import { boxOccupiesCell } from "@/features/hauler/lib/occupancy";
 import type { GameDocument } from "@/shared/types";
 
 export function plateHeld(document: GameDocument, plateId: string): boolean {
   const plate = document.level.plates.find((item) => item.id === plateId);
   if (!plate) return false;
   return document.level.boxes.some(
-    (box) => sameCell(box, plate) && box.kind === plate.accept,
+    (box) => boxOccupiesCell(box, plate) && box.kind === plate.accept,
   );
 }
 
@@ -14,7 +14,7 @@ export function evaluateGadgets(document: GameDocument): void {
   const floorPower = new Set<string>();
   for (const plate of document.level.plates) {
     const held = document.level.boxes.some(
-      (box) => sameCell(box, plate) && box.kind === plate.accept,
+      (box) => boxOccupiesCell(box, plate) && box.kind === plate.accept,
     );
     plate.powered = held;
     if (!held) continue;
